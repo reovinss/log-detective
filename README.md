@@ -1,6 +1,6 @@
 # Log Detective
 
-Junior-friendly information security pet project for analyzing nginx access logs.
+Basic information security pet project for analyzing nginx access logs.
 
 The app parses log lines, highlights suspicious activity, gives a simple risk score, and explains what to check next.
 
@@ -18,7 +18,7 @@ The app parses log lines, highlights suspicious activity, gives a simple risk sc
 Clone the repository and open its folder:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/log-detective.git
+git clone https://github.com/reovinss/log-detective.git
 cd log-detective
 ```
 
@@ -41,8 +41,6 @@ uvicorn app.main:app --reload
 ```
 
 Open `http://127.0.0.1:8000`.
-
-Replace `YOUR_USERNAME` with your GitHub username after creating the repository.
 
 ## Good next tasks
 

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Log Detective</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Junior Security Project</p>
+          <h1>Log Detective</h1>
+          <p class="lead">Upload an nginx access log and spot suspicious activity: scans, brute-force hints, SQLi, XSS, traversal, and noisy clients.</p>
+        </div>
+        <div class="score {{ result.risk_label | lower if result else 'empty' }}">
+          <span>Risk</span>
+          <strong>{{ result.risk_score if result else "--" }}</strong>
+          <small>{{ result.risk_label if result else "No data" }}</small>
+        </div>
+      </section>
+
+      <form class="workspace" action="/analyze" method="post" enctype="multipart/form-data">
+        <section class="panel input-panel">
+          <div class="panel-head">
+            <h2>Analyze Log</h2>
+            <button type="button" id="loadSample">Load sample</button>
+          </div>
+          <textarea name="log_text" id="logText" spellcheck="false" placeholder="Paste nginx access.log lines here">{{ log_text }}</textarea>
+          <div class="actions">
+            <input type="file" name="log_file" accept=".log,.txt" />
+            <button type="submit">Analyze</button>
+          </div>
+        </section>
+
+        <section class="panel results-panel">
+          <div class="panel-head">
+            <h2>Findings</h2>
+            {% if result %}
+              <span>{{ result.parsed_lines }} parsed / {{ result.total_lines }} total</span>
+            {% endif %}
+          </div>
+
+          {% if result %}
+            <div class="metrics">
+              <div><span>Alerts</span><strong>{{ result.alerts | length }}</strong></div>
+              <div><span>Skipped</span><strong>{{ result.skipped_lines }}</strong></div>
+              <div><span>Top IP</span><strong>{{ result.top_ips[0][0] if result.top_ips else "n/a" }}</strong></div>
+            </div>
+
+            <div class="alert-list">
+              {% for alert in result.alerts %}
+                <article class="alert {{ alert.severity | lower }}">
+                  <div>
+                    <span>{{ alert.severity }}</span>
+                    <h3>{{ alert.title }}</h3>
+                  </div>
+                  <p>{{ alert.evidence }}</p>
+                  <small>{{ alert.recommendation }}</small>
+                </article>
+              {% else %}
+                <p class="empty-state">No suspicious patterns found in parsed lines.</p>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="empty-state">Paste a log, upload a file, or load the sample to start.</p>
+          {% endif %}
+        </section>
+      </form>
+
+      {% if result %}
+        <section class="summary-grid">
+          <div class="panel">
+            <h2>Top IPs</h2>
+            <ul>
+              {% for ip, count in result.top_ips %}
+                <li><span>{{ ip }}</span><strong>{{ count }}</strong></li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="panel">
+            <h2>Status Codes</h2>
+            <ul>
+              {% for status, count in result.status_counts %}
+                <li><span>{{ status }}</span><strong>{{ count }}</strong></li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="panel">
+            <h2>Top Paths</h2>
+            <ul>
+              {% for path, count in result.top_paths %}
+                <li><span>{{ path }}</span><strong>{{ count }}</strong></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
+      {% endif %}
+    </main>
+
+    <script>
+      const sample = {{ sample | tojson }};
+      document.getElementById("loadSample").addEventListener("click", () => {
+        document.getElementById("logText").value = sample;
+      });
+    </script>
+  </body>
+</html>
